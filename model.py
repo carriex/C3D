@@ -54,7 +54,7 @@ class C3D(nn.Module):
 		x = self.dropout(x)
 		x = F.relu(self.fc2(x))
 		x = self.dropout(x)
-		x = F.softmax(self.out(x),dim=1)
+		x = self.out(x)
 
 		return x 
 
