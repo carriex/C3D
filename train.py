@@ -18,7 +18,7 @@ model_name = 'c3d.pth'
 def train():
 
 	#create the network 
-	c3d = model.C3D(num_classes).float()
+	c3d = model.C3D(num_classes)
 
 	device = get_default_device()
 	#import input data
@@ -26,7 +26,7 @@ def train():
 	trainloader = torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=2)
 	
 
-	c3d.to(device, non_blocking=True)
+	#c3d.to(device, non_blocking=True,dtype=torch.float)
 
 	#define loss function (Cross Entropy loss)
 	criterion = nn.CrossEntropyLoss()
@@ -50,7 +50,7 @@ def train():
 			print(inputs.device) 
 			optimizer.zero_grad()
 			
-			outputs = c3d(inputs.float())
+			outputs = c3d(inputs)
 			loss = criterion(outputs, labels)
 			loss.backward()
 			nn.utils.clip_grad_value_(c3d.parameters(),1)

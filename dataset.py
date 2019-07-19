@@ -100,7 +100,7 @@ class UCF101DataSet(Dataset):
 
 
 	def to_tensor(self,clip,label):
-		return torch.from_numpy(clip.transpose((3,0,1,2))).to(self.device),torch.from_numpy(np.array(label).astype(np.int64)).to(self.device)
+		return torch.from_numpy(clip.transpose((3,0,1,2))).to(self.device,dtype=torch.float),torch.from_numpy(np.array(label).astype(np.int64)).to(self.device,dtype=torch.long)
 
 	def show_image(self,image):
 		print(image.dtype)
