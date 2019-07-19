@@ -9,9 +9,9 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class UCF101DataSet(Dataset):
-	def __init__(self, datalist_file, clip_len, crop_size,split,transform=None):
+	def __init__(self, datalist_file, clip_len, crop_size,split,device,transform=None):
 		'''
-		datalist is a the list of frame information e.g. 
+		datalist_file contains the list of frame information e.g. 
 		/Users/carriex/git/supervised_training/data/v_ApplyEyeMakeup_g01_c01/ 1 0
 		The shape of the return clip is 3 x clip_len x crop_size x crop_size
 		'''
@@ -20,6 +20,7 @@ class UCF101DataSet(Dataset):
 		self.clip_len = clip_len
 		self.crop_size = crop_size
 		self.split = split
+		self.device = device
 
 	def __len__(self):
 		return len(self.datalist)
@@ -27,7 +28,7 @@ class UCF101DataSet(Dataset):
 	def __getitem__(self, idx):
 		data = self.datalist[idx]
 		frame_dir, start_frame, label = data[0], int(data[1]), data[2]
-		np_mean = np.load("ucf101_volume_mean_official.npy") # 16 x 128 x 171 x 3
+		np_mean = np.load("ucf101_volume_mean_official.npy") 
 		clip = self.load_frames(frame_dir,start_frame)
 		clip = self.normalize(clip,np_mean)
 		clip = self.crop(clip)
@@ -53,9 +54,9 @@ class UCF101DataSet(Dataset):
 			frame_path = os.path.join(frame_dir, "frame" + "{:06}.jpg".format(start_frame+i))
 			frame_origin = cv2.imread(frame_path)
 			frame_resize = cv2.resize(frame_origin, (171, 128))
-			frame = np.array(frame_resize).astype(np.float64)
-			clip.append(frame)
-		clip = np.array(clip).astype(np.float64)
+			frame = np.array(frame_resize).astype(np.uint8)
+			clip.append(frame_resize)
+		clip = np.array(clip).astype(np.uint8)
 		return clip
 
 	def crop(self,clip):
@@ -74,28 +75,39 @@ class UCF101DataSet(Dataset):
 		for frame in clip:
 			frame = frame[crop_x:(crop_x + crop_size), crop_y:(crop_y+crop_size),:]
 			crop_clip.append(frame)
-	
-		return np.array(crop_clip).astype(np.float64)
+		return np.array(crop_clip).astype(np.uint8)
 
 
 	def normalize(self,clip,np_mean):
+		norm_clip = []
 		for i in range(len(clip)):
-			clip[i] = clip[i] - np_mean[i]
-		return clip
+			norm_clip.append(clip[i] - np_mean[i])
+		return np.array(norm_clip).astype(np.uint8)
 
 	def random_flip(self,clip):
-
+		flip_clip = []
 		if self.split == "training":
 			for i in range(len(clip)):
 				mirror = np.random.randint(0,1)
 				if mirror == 0:
-					clip[i] = cv2.flip(clip[i], 1)
-		return clip
+					flip_clip.append(cv2.flip(clip[i], 1))
+				else:
+					flip_clip.append(clip[i])
+		else:
+			flip_clip = clip 
+
+		return np.array(flip_clip).astype(np.uint8)
 
 
 	def to_tensor(self,clip,label):
-		return torch.from_numpy(clip.transpose((3,0,1,2))),torch.from_numpy(np.array(label).astype(np.int64))
+		return torch.from_numpy(clip.transpose((3,0,1,2))).to(self.device),torch.from_numpy(np.array(label).astype(np.int64)).to(self.device)
 
+	def show_image(self,image):
+		print(image.dtype)
+		cv2.imshow('img',image)
+		k = cv2.waitKey(0)
+		if k == 27:
+			cv2.destroyAllWindows()
 
 
 

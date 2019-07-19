@@ -9,8 +9,8 @@ base_lr = 0.003
 momentum = 0.9 
 batch_size = 1
 num_classes = 101
-num_epoches = 60000
-weight_decay = 5e-4
+num_epoches = 16
+weight_decay = 0.005
 train_list = 'list/train_ucf101.list'
 model_dir = 'models'
 model_name = 'c3d.pth'
@@ -20,10 +20,14 @@ def train():
 	#create the network 
 	c3d = model.C3D(num_classes).float()
 
+	device = get_default_device()
 	#import input data
-	trainset = UCF101DataSet(datalist_file=train_list, clip_len=16, crop_size=112,split="training")
+	trainset = UCF101DataSet(datalist_file=train_list, clip_len=16, crop_size=112,split="training",device=device)
 	trainloader = torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=2)
 	
+
+	c3d.to(device, non_blocking=True)
+
 	#define loss function (Cross Entropy loss)
 	criterion = nn.CrossEntropyLoss()
 
@@ -31,9 +35,9 @@ def train():
 	#define optimizer 
 	optimizer = optim.SGD(c3d.parameters(), lr=base_lr, momentum=momentum, weight_decay=weight_decay)
 
-	#lr is divided by 10 after every 20000 epoches 
+	#lr is divided by 10 after every 4 epoches 
 	
-	scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=20000, gamma=0.1)
+	scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=4, gamma=0.1)
 
 
 	for epoch in range(num_epoches):
@@ -41,9 +45,9 @@ def train():
 		running_loss = 0.0 
 
 		for i, data in enumerate(trainloader, 0):
-			#batch_size = 30 
 			step = epoch * len(trainloader) + i
-			inputs, labels = data['clip'], data['label']  
+			inputs, labels = data['clip'], data['label'] 
+			print(inputs.device) 
 			optimizer.zero_grad()
 			
 			outputs = c3d(inputs.float())
@@ -65,11 +69,19 @@ def train():
 				print('[%d, %5d] loss: %.3f' %
 					(epoch + 1, i + 1, running_loss / 30))
 				running_loss = 0.0 
-			if step % 1000 == 999:
+			if step % 10000 == 9999:
 				torch.save(c3d.state_dict(),os.path.join(model_dir,'%s-%d'%(model_name, step+1)))
 
 		scheduler.step()
 	print('Finished Training')
+
+def get_default_device():
+	if torch.cuda.is_available():
+		return torch.device('cuda')
+	else:
+		return torch.device('cpu')
+
+
 
 def main():
 	train()

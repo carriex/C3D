@@ -63,12 +63,14 @@ class C3D(nn.Module):
 		for name, m in self.named_modules():
 			if type(m) == nn.Conv3d:
 				nn.init.normal_(m.weight, std=0.01)
-				nn.init.constant_(m.bias,1)
+				nn.init.constant_(m.bias,1.0)
 			if type(m) == nn.Linear:
 				if name == 'out':
-					nn.init.constant_(m.bias,0)
+					nn.init.constant_(m.bias, 0.0)
+					nn.init.normal_(m.weight, std=0.01)
 				else:
-					nn.init.constant_(m.bias, 1)
+					nn.init.constant_(m.bias, 1.0)
+					nn.init.normal_(m.weight, std=0.005)
 
 
 
