@@ -51,10 +51,10 @@ class C3D(nn.Module):
 		x = self.pool5(F.relu(self.conv5(x)))
 		x = x.view(-1, 256*1*4*4)
 		x = F.relu(self.fc1(x))
-		x = self.dropout(x)
-		x = F.relu(self.fc2(x))
-		x = self.dropout(x)
-		x = self.out(x)
+		d1_x = self.dropout(x)
+		x = F.relu(self.fc2(d1_x))
+		d2_x = self.dropout(x)
+		x = self.out(d2_x)
 
 		return x 
 
@@ -67,10 +67,22 @@ class C3D(nn.Module):
 			if type(m) == nn.Linear:
 				if name == 'out':
 					nn.init.constant_(m.bias, 0.0)
-					nn.init.normal_(m.weight, std=0.01)
+					nn.init.normal_(m.weight, std=0.005)	#0.01
 				else:
 					nn.init.constant_(m.bias, 1.0)
 					nn.init.normal_(m.weight, std=0.005)
+
+	def get_1x_lr_params(self):
+		for name, param in self.named_parameters():
+			if 'weight' in name and param.requires_grad:
+				yield param 
+
+
+	def get_2x_lr_params(self):
+		for name, param in self.named_parameters():
+			if 'bias' in name and param.requires_grad:
+				yield param
+
 
 
 
