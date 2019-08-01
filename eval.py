@@ -18,11 +18,18 @@ def eval():
 	
 	model_path = os.path.join(model_dir,model_name)
 	c3d = model.C3D(num_classes)
-	c3d.load_state_dict(torch.load(model_path))
 	device = get_default_device()
+
+	if device == torch.device('cpu'):
+		c3d.load_state_dict(torch.load(model_path,map_location='cpu'))
+	else:
+		c3d.load_state_dict(torch.load(model_path))
+	
 	c3d.to(device,non_blocking=True,dtype=torch.float)
 	c3d.eval()
-	print(model_name)
+	
+	for name, param in c3d.named_parameters():
+		print (name, param)
 
 	testset = UCF101DataSet(datalist_file=test_list, clip_len=16, crop_size=112,split="testing")
 	testloader = torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=True,num_workers=4) 
