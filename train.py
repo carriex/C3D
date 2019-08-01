@@ -12,7 +12,7 @@ batch_size = 30
 num_classes = 101
 num_epoches = 18
 weight_decay = 0.005
-train_list = 'list/rgb_train_ucf101.list'
+train_list = 'list/train_ucf101.list'
 model_dir = 'models'
 model_name = 'c3d-data.pth'
 
