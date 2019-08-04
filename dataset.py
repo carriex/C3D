@@ -10,38 +10,48 @@ import time
 
 
 class UCF101DataSet(Dataset):
-	def __init__(self, datalist_file, clip_len, crop_size,split,transform=None):
+	def __init__(self, datalist_file, clip_len, crop_size,split,test_sample_number=10):
 		'''
 		datalist_file contains the list of frame information e.g. 
 		/Users/carriex/git/supervised_training/data/v_ApplyEyeMakeup_g01_c01/ 1 0
 		The shape of the return clip is 3 x clip_len x crop_size x crop_size
 		'''
 		self.datalist = self.get_datalist(datalist_file)  
-		self.transform = transform
 		self.clip_len = clip_len
 		self.crop_size = crop_size
 		self.split = split
+		self.clip_per_label = self.get_video_label(datalist_file)
+		self.test_sample_number = test_sample_number
 
 	def __len__(self):
 		return len(self.datalist)
 
 	def __getitem__(self, idx):
-		start_time = time.time()
-		data = self.datalist[idx]
-		frame_dir, start_frame, label = data[0], int(data[1]), data[2]
-		np_mean = np.load("ucf101_volume_mean_official.npy") 
-		clip = self.load_frames(frame_dir,start_frame)
-		clip = self.crop(clip)
-		clip = self.random_flip(clip)
-		clip,label = self.to_tensor(clip,label)
+		
+		if self.split == "training":
+			data = self.datalist[idx]
+			frame_dir, start_frame, label = data[0], int(data[1]), data[2]
+			np_mean = np.load("ucf101_volume_mean_official.npy") 
+			clip = self.load_frames(frame_dir,start_frame)
+			clip = self.crop(clip)
+			clip = self.random_flip(clip)
+			clip,label = self.to_tensor(clip,label)
+		else:
+			clips_in_label = self.clip_per_label[idx]
+			print(clips_in_label)
+			sample_clip_idx = np.linspace(0, len(clips_in_label)-1, self.test_sample_number)
+			sample_clips = []
+			for clip_idx in sample_clip_idx:
+				clip = self.load_frames(clips_in_label[int(clip_idx)],1)
+				clip = self.crop(clip)
+				clip = self.random_flip(clip)
+				sample_clips.append(clip)
+
+			#sample clips - 10 x 16 x 3 x 112 x 112 
+			clip,label = self.to_tensor(np.array(sample_clips), int(clip_idx))  
+			
+
 		sample = {'clip':clip, 'label':label}
-
-		duration = time.time() - start_time 
-
-		print('Read data duration %.3f' % duration )
-
-		if self.transform:
-			sample = self.transform(sample)
 
 		return sample 
 
@@ -51,6 +61,23 @@ class UCF101DataSet(Dataset):
 			datalist[i] = datalist[i].strip('\n').split()
 
 		return datalist
+
+	def get_video_label(self,datalist_file):
+		"""Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/ 1 0"""
+		"""
+		clip_per_class[i] = [list of path for video clip]
+		"""
+		datalist = list(open(datalist_file, 'r'))
+		labellist = list(set([data.strip('\n').split(' ')[2] for data in datalist]))
+		clips_per_label = [[] for i in range(len(labellist))]
+		for data in datalist:
+			label = int(data.strip('\n').split(' ')[2])
+			path = data.strip('\n').split(' ')[0]
+			if path not in clips_per_label[label]:
+				clips_per_label[label].append(path)
+		return clips_per_label 
+
+
 
 	def load_frames(self,frame_dir,start_frame):
 		clip = []
@@ -103,7 +130,13 @@ class UCF101DataSet(Dataset):
 
 
 	def to_tensor(self,clip,label):
-		return torch.from_numpy(clip.transpose((3,0,1,2))),torch.from_numpy(np.array(label).astype(np.int64))
+		if self.split == "training":
+			# 3 x 16 x 112 x 112 
+			return torch.from_numpy(clip.transpose((3,0,1,2))),torch.from_numpy(np.array(label).astype(np.int64))
+		else:
+			# 10 x 3 x 16 x 112 x 112 
+			return torch.from_numpy(clip.transpose((0, 4, 1, 2, 3))), torch.tensor(label)
+
 
 
 def show_batch(clips):
@@ -116,6 +149,18 @@ def show_batch(clips):
 			k = cv2.waitKey(0)
 			if k == 27:
 				cv2.destroyAllWindows()
+
+
+test_list = 'list/test_ucf101.list'
+batch_size = 12
+num_classes = 101 
+testset = UCF101DataSet(datalist_file=test_list, clip_len=16, crop_size=112,split="testing")
+testloader = torch.utils.data.DataLoader(testset,batch_size=1,shuffle=False,num_workers=1) 
+
+for (i, sample) in enumerate(testloader):
+	print(sample['clip'].shape)
+	if i == 0:
+		break
 
 
 

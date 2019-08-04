@@ -38,9 +38,15 @@ def eval():
 	total_accuracy = [] 
 
 	for (i, data) in enumerate(testloader, 0):
+
+		# inputs - 12 x 10 x x 16 x 3 x 112 x 112 
+		outputs = []
 		inputs, labels = data['clip'].to(device,dtype=torch.float), data['label'].to(device)
-		outputs = c3d(inputs)
-		#outputs = nn.Softmax(dim=1)(outputs)
+		for sample in inputs:
+			sample_outputs = c3d(samples)
+			output = torch.mean(sample_outputs, dim=0)	
+			outputs.append(output)
+		outputs = torch.stack(outputs)
 		_, outputs = outputs.max(1)
 		total = labels.size(0)
 		correct = (outputs == labels).sum().item()
@@ -52,11 +58,6 @@ def eval():
 	total_accuracy = np.array(total_accuracy)
 
 	total_predict_label = np.array(total_predict_label)
-	#np.savetxt('results/total_accuracy.txt', total_accuracy, fmt = "%.6f")
-	#np.save('results/total_accuray.npy', total_accuracy)
-	#np.savetxt('results/predict_label_total.txt', total_predict_label, fmt="%d")
-	#np.save('results/predict_label_total.npy', total_predict_label)
-	print(model_name)
 	print("Final accuracy", np.mean(total_accuracy))
 
 def get_default_device():
