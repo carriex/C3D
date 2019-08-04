@@ -6,7 +6,7 @@ import os
 from tensorboardX import SummaryWriter
 from dataset import UCF101DataSet
 
-base_lr = 0.003
+base_lr = 0.001
 momentum = 0.9 
 batch_size = 30
 num_classes = 101
@@ -14,13 +14,15 @@ num_epoches = 18
 weight_decay = 0.005
 train_list = 'list/train_ucf101.list'
 model_dir = 'models'
-model_name = 'c3d-new.pth'
+pretrain_model_dir = '/data2/fangyuan/motion_statistics/models'
+pretrain_model_name = 'c3d-motion-new.pth-60000'
+model_name = 'c3d-finetune-new.pth'
 
 #c3d-trial.pth is trained with my data
 
 #c3d-data.pth is trained with my data
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
+os.environ["CUDA_VISIBLE_DEVICES"] = '3'
 
 
 #accuracy: 0.2942098158326102
@@ -38,6 +40,28 @@ def train():
 	trainset = UCF101DataSet(datalist_file=train_list, clip_len=16, crop_size=112,split="training")
 	trainloader = torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=10)
 	
+	model_path = os.path.join(pretrain_model_dir, pretrain_model_name)
+
+	print(model_path)
+
+	if device == torch.device('cpu'):
+		pretrained_param = torch.load(model_path,map_location='cpu')
+	else:
+		pretrained_param = torch.load(model_path)
+
+	to_load = {}
+
+
+	for key in pretrained_param.keys():
+		if 'conv' in key:
+			to_load[key] = pretrained_param[key]
+		else:
+			to_load[key] = c3d.state_dict()[key]
+
+
+	c3d.load_state_dict(to_load)
+
+
 
 	c3d.to(device, non_blocking=True,dtype=torch.float)
 	c3d.train()
@@ -72,10 +96,11 @@ def train():
 			inputs, labels = data['clip'].to(device,dtype=torch.float), data['label'].to(device) 
 			optimizer.zero_grad()
 
+			
 			outputs = c3d(inputs)
 			loss = criterion(outputs, labels)
 			loss.backward()
-			#print(len([ w for w in c3d.conv1.weight.grad.view(5184) if w > 1 or w < -1 ]))
+
 			nn.utils.clip_grad_value_(c3d.parameters(),1)
 			optimizer.step()
 

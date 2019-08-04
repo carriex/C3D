@@ -26,7 +26,7 @@ class UCF101DataSet(Dataset):
 		return len(self.datalist)
 
 	def __getitem__(self, idx):
-		start_time = time.time()
+		#start_time = time.time()
 		data = self.datalist[idx]
 		frame_dir, start_frame, label = data[0], int(data[1]), data[2]
 		np_mean = np.load("ucf101_volume_mean_official.npy") 
@@ -36,9 +36,9 @@ class UCF101DataSet(Dataset):
 		clip,label = self.to_tensor(clip,label)
 		sample = {'clip':clip, 'label':label}
 
-		duration = time.time() - start_time 
+		#duration = time.time() - start_time 
 
-		print('Read data duration %.3f' % duration )
+		#print('Read data duration %.3f' % duration )
 
 		if self.transform:
 			sample = self.transform(sample)
