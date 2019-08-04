@@ -20,14 +20,14 @@ class UCF101DataSet(Dataset):
         self.clip_len = clip_len
         self.crop_size = crop_size
         self.split = split
-        self.clip_per_label = self.get_video_label(datalist_file)
+        self.clips_with_label = self.get_clip_list(datalist_file)
         self.test_sample_number = test_sample_number
 
     def __len__(self):
         if self.split == "training":
             return len(self.datalist)
         else:
-            return len(self.clip_per_label)
+            return sum([len(clips) for clips in clip_per_label])
 
     def __getitem__(self, idx):
 
@@ -40,13 +40,9 @@ class UCF101DataSet(Dataset):
             clip = self.random_flip(clip)
             clip, label = self.to_tensor(clip, label)
         else:
-            clips_in_label = self.clip_per_label[idx]
-            print(clips_in_label)
-            sample_clip_idx = np.linspace(
-                0, len(clips_in_label)-1, self.test_sample_number)
-            sample_clips = []
-            for clip_idx in sample_clip_idx:
-                clip = self.load_frames(clips_in_label[int(clip_idx)], 1)
+            clip_with_label = self.clips_with_label[idx]
+            for frame_idx in range(self.test_sample_number):
+                clip = self.load_frames(clips_in_label[int(clip_idx)], frame_idx*self.clip_len+1)
                 clip = self.crop(clip)
                 sample_clips.append(clip)
 
@@ -64,21 +60,17 @@ class UCF101DataSet(Dataset):
 
         return datalist
 
-    def get_video_label(self, datalist_file):
-        """Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/ 1 0"""
+    def get_clip_list(self, cliplist_file):
+        """Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/  0"""
         """
 		clip_per_class[i] = [list of path for video clip]
 		"""
         datalist = list(open(datalist_file, 'r'))
-        labellist = list(set([data.strip('\n').split(' ')[2]
-                              for data in datalist]))
-        clips_per_label = [[] for i in range(len(labellist))]
+        clips_with_label = []
         for data in datalist:
-            label = int(data.strip('\n').split(' ')[2])
-            path = data.strip('\n').split(' ')[0]
-            if path not in clips_per_label[label]:
-                clips_per_label[label].append(path)
-        return clips_per_label
+            path, label = ata.strip('\n').split(' ')[0], int(data.strip('\n').split(' ')[1])
+            clips_with_label.append({'path':path, 'label':label})
+        return clips_with_label
 
     def load_frames(self, frame_dir, start_frame):
         clip = []
