@@ -38,7 +38,6 @@ def eval():
 
     for (i, data) in enumerate(testloader, 0):
 
-        # inputs - 12 x 10 x x 16 x 3 x 112 x 112
         outputs = []
         inputs, labels = data['clip'].to(
             device, dtype=torch.float), data['label'].to(device)

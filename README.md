@@ -10,8 +10,6 @@ C3D is a Convolution Neural Network with a 3 dimensional (3 x 3 x 3) kernel whic
 
 ## Usage
 
-## Result
-
 ## Notes
 
 ### Learning rate decay 
