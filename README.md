@@ -8,7 +8,6 @@ C3D is a Convolution Neural Network with a 3 dimensional (3 x 3 x 3) kernel whic
 1. Pytorch 1.0 or above 
 2. OpenCV 4.1 or above
 
-## Usage
 
 ## Notes
 
