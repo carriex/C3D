@@ -8,11 +8,3 @@ C3D is a Convolution Neural Network with a 3 dimensional (3 x 3 x 3) kernel whic
 1. Pytorch 1.0 or above 
 2. OpenCV 4.1 or above
 
-
-## Notes
-
-### Learning rate decay 
-A small step size for the learning rate decay might result in a lower accuracy as the learning rate might have decayed too early. And as a result, the loss might step into a local minima. 
-
-### Data augmentation 
-The training data is randomly flip horizontally with a probability of 0.5, resulting in data augmentation which contributes to a significant increase in terms of the accuracy of the model trained. 
