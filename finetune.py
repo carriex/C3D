@@ -18,14 +18,10 @@ pretrain_model_dir = '/data2/fangyuan/motion_statistics/models'
 pretrain_model_name = 'c3d-motion-new.pth-60000'
 model_name = 'c3d-finetune.pth'
 
-#c3d-trial.pth is trained with my data
-
-#c3d-data.pth is trained with my data
 
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 
-#accuracy: 0.2942098158326102
 
 def train():
 
@@ -66,7 +62,7 @@ def train():
 	c3d.to(device, non_blocking=True,dtype=torch.float)
 	c3d.train()
 
-	#define loss function (Cross Entropy loss)
+	
 	criterion = nn.CrossEntropyLoss()
 	criterion.to(device)
 
@@ -74,7 +70,7 @@ def train():
 	#define optimizer 
 	optimizer = optim.SGD(train_params, lr=base_lr, momentum=momentum, weight_decay=weight_decay)
 
-	#lr is divided by 10 after every 4 epoches 
+	
 	
 	scheduler = optim.lr_scheduler.StepLR(optimizer,step_size=6, gamma=0.1)
 	writer = SummaryWriter()
@@ -86,10 +82,7 @@ def train():
 		running_accuracy = 0.0
 		scheduler.step()
 		
-		#(lr1, lr2) = optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr']
-		#print(epoch, " Learning rate,", lr1, lr2)
-		#writer.add_scalar('Weight learning rate/epoch',lr1, epoch)
-		#writer.add_scalar('Bias learning rate/epoch',lr2, epoch)
+		
 
 		for i, data in enumerate(trainloader, 0):
 			step = epoch * len(trainloader) + i

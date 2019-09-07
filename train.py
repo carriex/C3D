@@ -16,14 +16,8 @@ train_list = 'list/train_ucf101.list'
 model_dir = 'models'
 model_name = 'c3d-new.pth'
 
-#c3d-trial.pth is trained with my data
-
-#c3d-data.pth is trained with my data
-
 os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 
-
-#accuracy: 0.2942098158326102
 
 def train():
 
@@ -62,10 +56,6 @@ def train():
 		running_accuracy = 0.0
 		scheduler.step()
 		
-		#(lr1, lr2) = optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr']
-		#print(epoch, " Learning rate,", lr1, lr2)
-		#writer.add_scalar('Weight learning rate/epoch',lr1, epoch)
-		#writer.add_scalar('Bias learning rate/epoch',lr2, epoch)
 
 		for i, data in enumerate(trainloader, 0):
 			step = epoch * len(trainloader) + i
@@ -75,7 +65,7 @@ def train():
 			outputs = c3d(inputs)
 			loss = criterion(outputs, labels)
 			loss.backward()
-			#print(len([ w for w in c3d.conv1.weight.grad.view(5184) if w > 1 or w < -1 ]))
+			
 			nn.utils.clip_grad_value_(c3d.parameters(),1)
 			optimizer.step()
 

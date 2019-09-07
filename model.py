@@ -67,7 +67,7 @@ class C3D(nn.Module):
 			if type(m) == nn.Linear:
 				if name == 'out':
 					nn.init.constant_(m.bias, 0.0)
-					nn.init.normal_(m.weight, std=0.005)	#0.01
+					nn.init.normal_(m.weight, std=0.005)	
 				else:
 					nn.init.constant_(m.bias, 1.0)
 					nn.init.normal_(m.weight, std=0.005)

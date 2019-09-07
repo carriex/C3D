@@ -7,4 +7,21 @@ C3D is a Convolution Neural Network with a 3 dimensional (3 x 3 x 3) kernel whic
 ## Requirement 
 1. Pytorch 1.0 or above 
 2. OpenCV 4.1 or above
+3. Python 3.6 or above 
+
+## Prerequisites 
+
+1. Clone the repo 
+
+```bash
+$ git clone https://github.com/carriex/C3D.git
+```
+
+2. Install the python dependency packages 
+```bash
+$ pip install -r requirements.txt 
+```
+
+
+
 
