@@ -3,10 +3,7 @@ import os
 import cv2
 import numpy as np
 import torch
-import torchvision
-from torchvision import transforms, utils
 from torch.utils.data import Dataset, DataLoader
-import time
 
 
 class UCF101DataSet(Dataset):
@@ -61,14 +58,14 @@ class UCF101DataSet(Dataset):
         return datalist
 
     def get_clip_list(self, cliplist_file):
-        """Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/  0"""
-        """
+        '''
+        Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/  0
 		clip_per_class[i] = [list of path for video clip]
-		"""
+		'''
         datalist = list(open(datalist_file, 'r'))
         clips_with_label = []
         for data in datalist:
-            path, label = ata.strip('\n').split(' ')[0], int(data.strip('\n').split(' ')[1])
+            path, label = data.strip('\n').split(' ')[0], int(data.strip('\n').split(' ')[1])
             clips_with_label.append({'path':path, 'label':label})
         return clips_with_label
 

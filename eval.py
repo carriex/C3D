@@ -1,5 +1,3 @@
-import torch.optim as optim
-import torch.nn as nn
 import torch
 import model
 import os
