@@ -39,7 +39,7 @@ class UCF101DataSet(Dataset):
         else:
             clip_with_label = self.clips_with_label[idx]
             for frame_idx in range(self.test_sample_number):
-                clip = self.load_frames(clips_in_label[int(clip_idx)], frame_idx*self.clip_len+1)
+                clip = self.load_frames(clip_with_label[int(clip_idx)], frame_idx * self.clip_len + 1)
                 clip = self.crop(clip)
                 sample_clips.append(clip)
 
@@ -62,18 +62,18 @@ class UCF101DataSet(Dataset):
         Args: /data2/UCF101/ucf101_jpegs_256/ApplyEyeMakeup/v_ApplyEyeMakeup_g08_c01/  0
 		clip_per_class[i] = [list of path for video clip]
 		'''
-        datalist = list(open(datalist_file, 'r'))
+        datalist = list(open(cliplist_file, 'r'))
         clips_with_label = []
         for data in datalist:
             path, label = data.strip('\n').split(' ')[0], int(data.strip('\n').split(' ')[1])
-            clips_with_label.append({'path':path, 'label':label})
+            clips_with_label.append({'path': path, 'label': label})
         return clips_with_label
 
     def load_frames(self, frame_dir, start_frame):
         clip = []
         for i in range(self.clip_len):
             frame_path = os.path.join(
-                frame_dir, "frame" + "{:06}.jpg".format(start_frame+i))
+                frame_dir, "frame" + "{:06}.jpg".format(start_frame + i))
             frame_origin = cv2.imread(frame_path)
             frame_resize = cv2.resize(frame_origin, (171, 128))
             clip.append(frame_resize)
@@ -95,7 +95,7 @@ class UCF101DataSet(Dataset):
             crop_y = (y - crop_size) // 2
         for frame in clip:
             frame = frame[crop_x:(crop_x + crop_size),
-                          crop_y:(crop_y+crop_size), :]
+                    crop_y:(crop_y + crop_size), :]
             crop_clip.append(frame)
         return np.array(crop_clip).astype(np.uint8)
 
@@ -129,7 +129,6 @@ class UCF101DataSet(Dataset):
 
 
 def show_batch(clips):
-
     batch_size = clips.shape[0]
     for i in range(batch_size):
         video = clips[i].numpy().transpose(1, 2, 3, 0)
@@ -138,6 +137,3 @@ def show_batch(clips):
             k = cv2.waitKey(0)
             if k == 27:
                 cv2.destroyAllWindows()
-
-
-

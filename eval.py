@@ -13,7 +13,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 
 
 def eval():
-
     model_path = os.path.join(model_dir, model_name)
     c3d = model.C3D(num_classes)
     device = get_default_device()
@@ -39,11 +38,11 @@ def eval():
         outputs = []
         inputs, labels = data['clip'].to(
             device, dtype=torch.float), data['label'].to(device)
-        for j,sample in enumerate(inputs):
+        for j, sample in enumerate(inputs):
             print(sample.shape)
             sample_outputs = c3d(sample)
             _, output_idx = sample_outputs.max(1)
-            print(output_idx)            
+            print(output_idx)
             output = torch.mean(sample_outputs, dim=0)
             outputs.append(output)
         outputs = torch.stack(outputs)
